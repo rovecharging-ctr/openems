@@ -10,7 +10,7 @@
 
 -runproperties: \
 	org.osgi.service.http.port=8079,\
-	felix.cm.dir=c:/openems-backend-config,\
+	felix.cm.dir=../../config-backend,\
 	org.ops4j.pax.logging.DefaultServiceLog.level=INFO
 
 -runsystempackages: \
