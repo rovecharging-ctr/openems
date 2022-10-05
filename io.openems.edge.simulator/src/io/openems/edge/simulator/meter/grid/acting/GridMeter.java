@@ -19,13 +19,26 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.event.propertytypes.EventTopics;
 import org.osgi.service.metatype.annotations.Designate;
 
+import io.openems.common.channel.AccessMode;
 import io.openems.common.channel.Unit;
+import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.types.ChannelAddress;
 import io.openems.common.types.OpenemsType;
+import io.openems.edge.bridge.modbus.api.AbstractOpenemsModbusComponent;
+import io.openems.edge.bridge.modbus.api.BridgeModbus;
+import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
+import io.openems.edge.bridge.modbus.api.ModbusComponent;
+import io.openems.edge.bridge.modbus.api.ModbusProtocol;
+import io.openems.edge.bridge.modbus.api.element.DummyRegisterElement;
+import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
+import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
+import io.openems.edge.common.modbusslave.ModbusSlave;
+import io.openems.edge.common.modbusslave.ModbusSlaveTable;
+import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.common.type.TypeUtils;
 import io.openems.edge.ess.api.ManagedSymmetricEss;
 import io.openems.edge.meter.api.AsymmetricMeter;
@@ -47,8 +60,8 @@ import io.openems.edge.timedata.api.utils.CalculateEnergyFromPower;
 		EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE, //
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
 })
-public class GridMeter extends AbstractOpenemsComponent
-		implements SymmetricMeter, AsymmetricMeter, OpenemsComponent, TimedataProvider, EventHandler {
+public class GridMeter extends AbstractOpenemsModbusComponent
+		implements SymmetricMeter, AsymmetricMeter, OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent, ModbusSlave {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER) //
@@ -151,6 +164,30 @@ public class GridMeter extends AbstractOpenemsComponent
 		this._setActivePowerL3(activePowerByThree);
 	}
 
+
+	@Override
+	@Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
+	protected void setModbus(BridgeModbus modbus) {
+		super.setModbus(modbus);
+	}
+
+	@Override
+	protected ModbusProtocol defineModbusProtocol() throws OpenemsException {
+		/*
+		 * We are using the FLOAT registers from the modbus table, because they are all
+		 * reachable within one ReadMultipleRegistersRequest.
+		 */
+		var modbusProtocol = new ModbusProtocol(this, //
+				new FC16WriteRegistersTask(1000,  //
+						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)),
+						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1002))));
+
+
+
+		return modbusProtocol;
+	}
+
+	
 	@Override
 	public String debugLog() {
 		return this.getActivePower().asString();
@@ -181,5 +218,13 @@ public class GridMeter extends AbstractOpenemsComponent
 	public Timedata getTimedata() {
 		return this.timedata;
 	}
+	
+	@Override
+	public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {
+		return new ModbusSlaveTable(//
+				OpenemsComponent.getModbusSlaveNatureTable(accessMode), //
+				SymmetricMeter.getModbusSlaveNatureTable(accessMode), //
+				AsymmetricMeter.getModbusSlaveNatureTable(accessMode) //
+		);
 
 }
