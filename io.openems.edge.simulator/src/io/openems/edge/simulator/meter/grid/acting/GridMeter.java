@@ -227,5 +227,4 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 				AsymmetricMeter.getModbusSlaveNatureTable(accessMode) //
 		);
 
-	}
 }
