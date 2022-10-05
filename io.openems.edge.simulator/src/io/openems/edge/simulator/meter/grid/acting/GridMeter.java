@@ -32,6 +32,7 @@ import io.openems.edge.bridge.modbus.api.ModbusProtocol;
 import io.openems.edge.bridge.modbus.api.element.DummyRegisterElement;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
 import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
+import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.common.channel.Doc;
 import io.openems.edge.common.component.AbstractOpenemsComponent;
 import io.openems.edge.common.component.OpenemsComponent;
@@ -97,13 +98,13 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 			SymmetricMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY);
 
 	@Activate
-	void activate(ComponentContext context, Config config) throws IOException {
-		super.activate(context, config.id(), config.alias(), config.enabled());
+	void activate(ComponentContext context, Config config) throws IOException, OpenemsException  {
+		super.activate(context, config.id(), config.alias(), config.enabled(),config.modbusUnitId(), this.cm, "Modbus", config.modbus_id());
 
-		// update filter for 'datasource'
 		if (OpenemsComponent.updateReferenceFilter(this.cm, this.servicePid(), "datasource", config.datasource_id())) {
-			return;
+				return;
 		}
+
 	}
 
 	@Override
@@ -117,6 +118,7 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 				OpenemsComponent.ChannelId.values(), //
 				SymmetricMeter.ChannelId.values(), //
 				AsymmetricMeter.ChannelId.values(), //
+				ModbusComponent.ChannelId.values(),
 				ChannelId.values() //
 		);
 	}
@@ -178,10 +180,11 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		 * reachable within one ReadMultipleRegistersRequest.
 		 */
 		var modbusProtocol = new ModbusProtocol(this, //
-				new FC16WriteRegistersTask(1000,  //
-						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)),
-						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1002))));
+				new FC3ReadRegistersTask(1000, Priority.HIGH,
+						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000))),
 
+				new FC16WriteRegistersTask(1002,  //
+						m(SymmetricMeter.ChannelId.ACTIVE_POWER, new FloatDoublewordElement(1002))));
 
 
 		return modbusProtocol;
@@ -222,9 +225,10 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 	@Override
 	public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {
 		return new ModbusSlaveTable(//
-				OpenemsComponent.getModbusSlaveNatureTable(accessMode), //
-				SymmetricMeter.getModbusSlaveNatureTable(accessMode), //
-				AsymmetricMeter.getModbusSlaveNatureTable(accessMode) //
+				OpenemsComponent.getModbusSlaveNatureTable(AccessMode.READ_WRITE), //
+				SymmetricMeter.getModbusSlaveNatureTable(AccessMode.READ_WRITE), //
+				AsymmetricMeter.getModbusSlaveNatureTable(AccessMode.READ_WRITE) //
 		);
 
+	}
 }
