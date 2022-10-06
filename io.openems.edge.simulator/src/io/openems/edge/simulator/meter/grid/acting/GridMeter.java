@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import io.openems.common.exceptions.OpenemsError;
+import io.openems.edge.common.channel.IntegerWriteChannel;
+import io.openems.edge.common.modbusslave.ModbusSlaveNatureTable;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.component.annotations.Activate;
@@ -59,13 +62,14 @@ import io.openems.edge.timedata.api.utils.CalculateEnergyFromPower;
 		})
 @EventTopics({ //
 		EdgeEventConstants.TOPIC_CYCLE_BEFORE_PROCESS_IMAGE, //
-		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE //
+		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE, //
+		EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE //
 })
 public class GridMeter extends AbstractOpenemsModbusComponent
 		implements SymmetricMeter, AsymmetricMeter, OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent, ModbusSlave {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
-		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER) //
+		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER).accessMode(AccessMode.READ_WRITE) //
 				.unit(Unit.WATT));
 
 		private final Doc doc;
@@ -140,6 +144,14 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		case EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE:
 			this.calculateEnergy();
 			break;
+
+		case EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE:
+			try {
+				this.run();
+			} catch (OpenemsError.OpenemsNamedException e) {
+				throw new RuntimeException(e);
+			}
+			break;
 		}
 	}
 
@@ -166,6 +178,18 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		this._setActivePowerL3(activePowerByThree);
 	}
 
+	private void run() throws OpenemsError.OpenemsNamedException {
+		/*
+		 * get and store Simulated Active Power
+		 */
+		Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
+				new ChannelAddress(this.id(), "ActivePower"));
+
+		IntegerWriteChannel activePowerCh = this.channel(ChannelId.SIMULATED_ACTIVE_POWER);
+		activePowerCh.setNextWriteValue(simulatedActivePower);
+
+	}
+
 
 	@Override
 	@Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
@@ -180,11 +204,13 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		 * reachable within one ReadMultipleRegistersRequest.
 		 */
 		var modbusProtocol = new ModbusProtocol(this, //
-				new FC3ReadRegistersTask(1000, Priority.HIGH,
-						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000))),
+//				new FC3ReadRegistersTask(1000, Priority.HIGH,
+//						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)))
 
 				new FC16WriteRegistersTask(1002,  //
-						m(SymmetricMeter.ChannelId.ACTIVE_POWER, new FloatDoublewordElement(1002))));
+						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1002)))
+
+				);
 
 
 		return modbusProtocol;
@@ -227,8 +253,8 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		return new ModbusSlaveTable(//
 				OpenemsComponent.getModbusSlaveNatureTable(AccessMode.READ_WRITE), //
 				SymmetricMeter.getModbusSlaveNatureTable(AccessMode.READ_WRITE), //
-				AsymmetricMeter.getModbusSlaveNatureTable(AccessMode.READ_WRITE) //
-		);
-
+				AsymmetricMeter.getModbusSlaveNatureTable(AccessMode.READ_WRITE), //
+				ModbusSlaveNatureTable.of(GridMeter.class, AccessMode.READ_WRITE, 100) //
+						.build());
 	}
 }
