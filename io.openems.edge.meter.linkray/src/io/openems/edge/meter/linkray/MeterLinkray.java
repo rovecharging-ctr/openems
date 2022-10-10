@@ -141,7 +141,7 @@ public class MeterLinkray extends AbstractOpenemsComponent
 
 	@Override
 	public CompletableFuture<? extends JsonrpcResponseSuccess> handleJsonrpcRequest(User user, JsonrpcRequest request)
-			throws OpenemsNamedException, InterruptedException {
+			throws OpenemsNamedException {
 		user.assertRoleIsAtLeast("handleJsonrpcRequest", Role.GUEST);
 
 		try {

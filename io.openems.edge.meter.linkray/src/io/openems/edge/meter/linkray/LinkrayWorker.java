@@ -46,7 +46,7 @@ public class LinkrayWorker extends AbstractCycleWorker {
 
 		try {
 			var values = JsonUtils.getAsJsonObject(reading, "data");
-			current = JsonUtils.getAsOptionalInt(values, "totamps").orElse(null);
+			current = JsonUtils.getAsOptionalInt(values, "chargecurrent").orElse(null);
 			
 			this.parent.logInfo(log, "Current: " + current.toString());
 

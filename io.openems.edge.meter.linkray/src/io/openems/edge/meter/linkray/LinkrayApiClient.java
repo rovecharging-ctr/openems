@@ -119,9 +119,12 @@ public class LinkrayApiClient {
 		//data.put("key", "UgDbdmNY51G48cTEyAu2WjOsFz0pLR");
 		data.put("key", apiKey);
 
-		HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create("https://192.168.68.122/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
-				.header("Content-Type", "application/x-www-form-urlencoded").build();
+		//HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create("https://192.168.68.122/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+		//		.header("Content-Type", "application/x-www-form-urlencoded").build();
 		
+		HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create("http://127.0.0.1:18080/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+						.header("Content-Type", "application/x-www-form-urlencoded").build();
+				
 		HttpResponse<String> response; 
 		
 
