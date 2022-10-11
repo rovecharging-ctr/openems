@@ -42,6 +42,8 @@ public class LinkrayApiClient {
 
 	private static final String BASE_URL = "http://127.0.0.1:18080";
 
+	private final String url;
+
 	private final String apiKey;
 	
 	private HttpClient httpClient;
@@ -73,7 +75,10 @@ public class LinkrayApiClient {
 	}
 
 
-	public LinkrayApiClient(String apiKey) {
+	public LinkrayApiClient(String url, String apiKey) {
+		// Store the API key
+		this.url = url;
+
 		// Store the API key
 		this.apiKey = apiKey;
 	}
@@ -116,13 +121,10 @@ public class LinkrayApiClient {
 
 		// form parameters
 		Map<Object, Object> data = new HashMap<>();
-		//data.put("key", "UgDbdmNY51G48cTEyAu2WjOsFz0pLR");
 		data.put("key", apiKey);
 
-		//HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create("https://192.168.68.122/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
-		//		.header("Content-Type", "application/x-www-form-urlencoded").build();
-		
-		HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create("http://127.0.0.1:18080/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
+
+		HttpRequest request = HttpRequest.newBuilder().POST(buildFormDataFromMap(data)).uri(URI.create(this.url + "/Endpoints/ReadLoadBalancing/")).setHeader("User-Agent", "Java 11 HttpClient Bot") // add request header
 						.header("Content-Type", "application/x-www-form-urlencoded").build();
 				
 		HttpResponse<String> response; 
@@ -137,12 +139,6 @@ public class LinkrayApiClient {
 					"Unable to read from Linkray API. " + e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 
-		// print status code
-		System.out.println(response.statusCode());
-
-		// print response body
-		System.out.println(response.body());
-
 		return JsonUtils.parse(response.body().toString()) ;
 	}
 
@@ -156,7 +152,6 @@ public class LinkrayApiClient {
 			builder.append("=");
 			builder.append(URLEncoder.encode(entry.getValue().toString(), StandardCharsets.UTF_8));
 		}
-		System.out.println(builder.toString());
 		return HttpRequest.BodyPublishers.ofString(builder.toString());
 	}
 

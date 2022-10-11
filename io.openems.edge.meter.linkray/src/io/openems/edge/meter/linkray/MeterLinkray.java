@@ -71,7 +71,7 @@ public class MeterLinkray extends AbstractOpenemsComponent
 		super.activate(context, config.id(), config.alias(), config.enabled());
 
 		if (config.enabled()) {
-			this.apiClient = new LinkrayApiClient(config.apiKey());
+			this.apiClient = new LinkrayApiClient(config.url(), config.apiKey());
 
 			this.worker = new LinkrayWorker(this, this.apiClient, config);
 			this.worker.activate(config.id());
@@ -93,7 +93,12 @@ public class MeterLinkray extends AbstractOpenemsComponent
 		/*
 		 * Raw values from Linkray API
 		 */
-		RAW_CURRENT(Doc.of(OpenemsType.INTEGER));
+
+		LRVOLTAGE(Doc.of(OpenemsType.DOUBLE)),
+		TOTAMPS(Doc.of(OpenemsType.DOUBLE)),
+		CHARGECURRENT(Doc.of(OpenemsType.DOUBLE)),
+		AVAILABLEPERCHARGER(Doc.of(OpenemsType.DOUBLE));
+
 
 		private final Doc doc;
 

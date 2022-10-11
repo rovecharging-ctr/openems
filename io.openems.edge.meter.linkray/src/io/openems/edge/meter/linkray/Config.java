@@ -23,6 +23,8 @@ import io.openems.edge.meter.api.MeterType;
 	@AttributeDefinition(name = "Meter-Type", description = "What is measured by this Meter?")
 	MeterType type() default MeterType.GRID;
 
+	@AttributeDefinition(name = "url", description = "e.g. https://192.168.68.122")
+	String url() default "http://127.0.0.1:18080";
 	@AttributeDefinition(name = "API Key", description = "API key required to read the Linkray")
 	String apiKey() default "";
 

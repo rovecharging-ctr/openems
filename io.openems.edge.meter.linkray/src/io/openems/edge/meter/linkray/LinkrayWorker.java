@@ -12,6 +12,7 @@ import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.common.exceptions.OpenemsException;
 import io.openems.common.utils.JsonUtils;
 import io.openems.common.worker.AbstractCycleWorker;
+import io.openems.edge.common.channel.DoubleReadChannel;
 import io.openems.edge.common.channel.IntegerReadChannel;
 import io.openems.edge.common.channel.LongReadChannel;
 import io.openems.edge.common.type.TypeUtils;
@@ -19,48 +20,66 @@ import io.openems.edge.meter.linkray.MeterLinkray.ChannelId;
 
 public class LinkrayWorker extends AbstractCycleWorker {
 
-	private static final int LAST_READING_TOO_OLD_SECONDS = 30;
+    private static final int LAST_READING_TOO_OLD_SECONDS = 30;
 
-	private final Logger log = LoggerFactory.getLogger(LinkrayWorker.class);
-	private final MeterLinkray parent;
-	private final LinkrayApiClient apiClient;
-	private final Config config;
+    private final Logger log = LoggerFactory.getLogger(LinkrayWorker.class);
+    private final MeterLinkray parent;
+    private final LinkrayApiClient apiClient;
+    private final Config config;
 
-	/**
-	 * Holds the internal Linkray meterId.
-	 */
-	private String meterId = null;
+    /**
+     * Holds the internal Linkray meterId.
+     */
+    private String meterId = null;
 
-	public LinkrayWorker(MeterLinkray parent, LinkrayApiClient apiClient, Config config) {
-		this.parent = parent;
-		this.apiClient = apiClient;
-		this.config = config;
-	}
+    public LinkrayWorker(MeterLinkray parent, LinkrayApiClient apiClient, Config config) {
+        this.parent = parent;
+        this.apiClient = apiClient;
+        this.config = config;
+    }
 
-	@Override
-	protected void forever() throws OpenemsNamedException, InterruptedException {
-		
-		var reading = this.apiClient.getData();
-		Integer current = null;
+    @Override
+    protected void forever() throws OpenemsNamedException, InterruptedException {
 
 
-		try {
-			var values = JsonUtils.getAsJsonObject(reading, "data");
-			current = JsonUtils.getAsOptionalInt(values, "chargecurrent").orElse(null);
-			
-			this.parent.logInfo(log, "Current: " + current.toString());
+        var reading = this.apiClient.getData();
+        Double voltage;
+        Double totamps;
+        Double chargecurrent;
+        Double availablepercharger;
 
 
-		} catch (OpenemsException e) {
-			this.parent.logError(this.log, "REST-Api failed: " + e.getMessage());
+        try {
+            var values = JsonUtils.getAsJsonObject(reading, "data");
+            voltage = JsonUtils.getAsDouble(values, "voltage");
+            totamps = JsonUtils.getAsDouble(values, "totamps");
+            chargecurrent = JsonUtils.getAsDouble(values, "chargecurrent");
+            availablepercharger = JsonUtils.getAsDouble(values, "availablepercharger");
 
-		}
-	}
 
-	/**
-	 * Validates that we have valid MeterId.
-	 *
-	 * @throws OpenemsNamedException on invalid MeterId.
-	 */
+//            this.parent.logInfo(log, "voltage: " + voltage.toString() +
+//                    " ,totamps: " + totamps.toString() +
+//                    " ,chargecurrent: " + chargecurrent.toString() +
+//                    " ,availablepercharger: " + availablepercharger.toString());
+
+			((DoubleReadChannel) this.parent.channel(ChannelId.LRVOLTAGE)).setNextValue(voltage);
+			((DoubleReadChannel) this.parent.channel(ChannelId.TOTAMPS)).setNextValue(totamps);
+			((DoubleReadChannel) this.parent.channel(ChannelId.CHARGECURRENT)).setNextValue(chargecurrent);
+			((DoubleReadChannel) this.parent.channel(ChannelId.AVAILABLEPERCHARGER)).setNextValue(availablepercharger);
+
+			this.parent._setActivePower( (int) Math.round(voltage * chargecurrent));
+
+
+        } catch (OpenemsException e) {
+            this.parent.logError(this.log, "REST-Api failed: " + e.getMessage());
+
+        }
+    }
+
+    /**
+     * Validates that we have valid MeterId.
+     *
+     * @throws OpenemsNamedException on invalid MeterId.
+     */
 
 }
