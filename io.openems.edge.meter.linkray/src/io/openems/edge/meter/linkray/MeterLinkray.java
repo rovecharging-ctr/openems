@@ -181,7 +181,7 @@ public class MeterLinkray extends AbstractOpenemsComponent
 	 * @param request the GetMetersRequest
 	 * @return the Future JSON-RPC Response
 	 * @throws OpenemsNamedException on error
-	 * @throws InterruptedException 
+	 * @throws InterruptedException on error
 	 */
 	private CompletableFuture<JsonrpcResponseSuccess> handleGetDataRequest(User user, GetDataRequest request)
 			throws OpenemsNamedException, InterruptedException {

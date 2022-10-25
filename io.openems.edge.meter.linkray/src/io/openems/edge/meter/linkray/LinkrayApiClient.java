@@ -91,25 +91,22 @@ public class LinkrayApiClient {
 	 *
 	 * @return the Meters as a JsonArray.
 	 * @throws OpenemsNamedException on error
-	 * @throws InterruptedException 
+	 * @throws InterruptedException  on error
 	 */
 	public JsonObject getData() throws OpenemsNamedException, InterruptedException {
-		return JsonUtils.getAsJsonObject(this.sendPostRequest(this.apiKey, "/Endpoints/ReadLoadBalancing/"));
+		return JsonUtils.getAsJsonObject(this.sendPostRequest(this.apiKey));
 	}
 
 	/**
 	 * Sends a get request to the Linkray API.
 	 *
-	 * @param endpoint the REST Api endpoint
-	 * @return 
-	 * @return JsonElement
-	 * @return 
-	 * @return a JsonObject or JsonArray
+	 * @param apiKey the API key
+	 * @return JsonElement the post request result
 	 * @throws OpenemsNamedException on error
-	 * @throws InterruptedException 
+	 * @throws InterruptedException on error
 	 */
 
-	private JsonElement sendPostRequest(String apiKey, String endpoint) throws OpenemsNamedException, InterruptedException {
+	private JsonElement sendPostRequest(String apiKey) throws OpenemsNamedException, InterruptedException {
 
 		var properties = System.getProperties();
 		properties.setProperty("jdk.internal.httpclient.disableHostnameVerification", Boolean.TRUE.toString());
@@ -139,7 +136,7 @@ public class LinkrayApiClient {
 					"Unable to read from Linkray API. " + e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 
-		return JsonUtils.parse(response.body().toString()) ;
+		return JsonUtils.parse(response.body().toString());
 	}
 
 	private static HttpRequest.BodyPublisher buildFormDataFromMap(Map<Object, Object> data) {

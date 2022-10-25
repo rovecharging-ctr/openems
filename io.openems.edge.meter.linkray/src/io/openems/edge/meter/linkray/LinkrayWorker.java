@@ -56,30 +56,16 @@ public class LinkrayWorker extends AbstractCycleWorker {
             chargecurrent = JsonUtils.getAsDouble(values, "chargecurrent");
             availablepercharger = JsonUtils.getAsDouble(values, "availablepercharger");
 
-
-//            this.parent.logInfo(log, "voltage: " + voltage.toString() +
-//                    " ,totamps: " + totamps.toString() +
-//                    " ,chargecurrent: " + chargecurrent.toString() +
-//                    " ,availablepercharger: " + availablepercharger.toString());
-
 			((DoubleReadChannel) this.parent.channel(ChannelId.LRVOLTAGE)).setNextValue(voltage);
 			((DoubleReadChannel) this.parent.channel(ChannelId.TOTAMPS)).setNextValue(totamps);
 			((DoubleReadChannel) this.parent.channel(ChannelId.CHARGECURRENT)).setNextValue(chargecurrent);
 			((DoubleReadChannel) this.parent.channel(ChannelId.AVAILABLEPERCHARGER)).setNextValue(availablepercharger);
 
-			this.parent._setActivePower( (int) Math.round(voltage * chargecurrent));
-
+			this.parent._setActivePower((int) Math.round(voltage * chargecurrent));
 
         } catch (OpenemsException e) {
             this.parent.logError(this.log, "REST-Api failed: " + e.getMessage());
 
         }
     }
-
-    /**
-     * Validates that we have valid MeterId.
-     *
-     * @throws OpenemsNamedException on invalid MeterId.
-     */
-
 }
