@@ -1,3 +1,0 @@
-= io.openems.edge.meter.linkray
-
-https://github.com/OpenEMS/openems/tree/develop/io.openems.edge.meter.linkray[Source Code icon:github[]]
