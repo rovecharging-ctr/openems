@@ -29,20 +29,16 @@ import io.openems.common.types.ChannelAddress;
 import io.openems.common.types.OpenemsType;
 import io.openems.edge.bridge.modbus.api.AbstractOpenemsModbusComponent;
 import io.openems.edge.bridge.modbus.api.BridgeModbus;
-import io.openems.edge.bridge.modbus.api.ElementToChannelConverter;
 import io.openems.edge.bridge.modbus.api.ModbusComponent;
 import io.openems.edge.bridge.modbus.api.ModbusProtocol;
-import io.openems.edge.bridge.modbus.api.element.DummyRegisterElement;
 import io.openems.edge.bridge.modbus.api.element.FloatDoublewordElement;
 import io.openems.edge.bridge.modbus.api.task.FC16WriteRegistersTask;
-import io.openems.edge.bridge.modbus.api.task.FC3ReadRegistersTask;
 import io.openems.edge.common.channel.Doc;
-import io.openems.edge.common.component.AbstractOpenemsComponent;
+import io.openems.edge.common.component.ComponentManager;
 import io.openems.edge.common.component.OpenemsComponent;
 import io.openems.edge.common.event.EdgeEventConstants;
 import io.openems.edge.common.modbusslave.ModbusSlave;
 import io.openems.edge.common.modbusslave.ModbusSlaveTable;
-import io.openems.edge.common.taskmanager.Priority;
 import io.openems.edge.common.type.TypeUtils;
 import io.openems.edge.ess.api.ManagedSymmetricEss;
 import io.openems.edge.meter.api.AsymmetricMeter;
@@ -65,8 +61,8 @@ import io.openems.edge.timedata.api.utils.CalculateEnergyFromPower;
 		EdgeEventConstants.TOPIC_CYCLE_AFTER_PROCESS_IMAGE, //
 		EdgeEventConstants.TOPIC_CYCLE_EXECUTE_WRITE //
 })
-public class GridMeter extends AbstractOpenemsModbusComponent
-		implements SymmetricMeter, AsymmetricMeter, OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent, ModbusSlave {
+public class GridMeter extends AbstractOpenemsModbusComponent implements SymmetricMeter, AsymmetricMeter,
+		OpenemsComponent, TimedataProvider, EventHandler, ModbusComponent, ModbusSlave {
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER).accessMode(AccessMode.READ_WRITE) //
@@ -83,6 +79,9 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 			return this.doc;
 		}
 	}
+
+	@Reference
+	protected ComponentManager componentManager;
 
 	@Reference
 	protected ConfigurationAdmin cm;
@@ -102,11 +101,12 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 			SymmetricMeter.ChannelId.ACTIVE_CONSUMPTION_ENERGY);
 
 	@Activate
-	void activate(ComponentContext context, Config config) throws IOException, OpenemsException  {
-		super.activate(context, config.id(), config.alias(), config.enabled(),config.modbusUnitId(), this.cm, "Modbus", config.modbus_id());
+	void activate(ComponentContext context, Config config) throws IOException, OpenemsException {
+		super.activate(context, config.id(), config.alias(), config.enabled(), config.modbusUnitId(), this.cm, "Modbus",
+				config.modbus_id());
 
 		if (OpenemsComponent.updateReferenceFilter(this.cm, this.servicePid(), "datasource", config.datasource_id())) {
-				return;
+			return;
 		}
 
 	}
@@ -122,8 +122,7 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 				OpenemsComponent.ChannelId.values(), //
 				SymmetricMeter.ChannelId.values(), //
 				AsymmetricMeter.ChannelId.values(), //
-				ModbusComponent.ChannelId.values(),
-				ChannelId.values() //
+				ModbusComponent.ChannelId.values(), ChannelId.values() //
 		);
 	}
 
@@ -182,14 +181,17 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 		/*
 		 * get and store Simulated Active Power
 		 */
-		Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
-				new ChannelAddress(this.id(), "ActivePower"));
+		SymmetricMeter meter = this.componentManager.getComponent("linkray0");
+
+		// Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
+//				new ChannelAddress(this.id(), "ActivePower"));
+
+		var activePower = meter.getActivePowerChannel();
 
 		IntegerWriteChannel activePowerCh = this.channel(ChannelId.SIMULATED_ACTIVE_POWER);
-		activePowerCh.setNextWriteValue(simulatedActivePower);
+		activePowerCh.setNextWriteValue(activePower.getNextValue().get());
 
 	}
-
 
 	@Override
 	@Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
@@ -207,16 +209,14 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 //				new FC3ReadRegistersTask(1000, Priority.HIGH,
 //						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)))
 
-				new FC16WriteRegistersTask(1002,  //
+				new FC16WriteRegistersTask(1002, //
 						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1002)))
 
-				);
-
+		);
 
 		return modbusProtocol;
 	}
 
-	
 	@Override
 	public String debugLog() {
 		return this.getActivePower().asString();
@@ -247,7 +247,7 @@ public class GridMeter extends AbstractOpenemsModbusComponent
 	public Timedata getTimedata() {
 		return this.timedata;
 	}
-	
+
 	@Override
 	public ModbusSlaveTable getModbusSlaveTable(AccessMode accessMode) {
 		return new ModbusSlaveTable(//
