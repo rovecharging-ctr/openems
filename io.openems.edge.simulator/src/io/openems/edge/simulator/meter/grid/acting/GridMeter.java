@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.openems.common.exceptions.OpenemsError;
+import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.common.channel.IntegerWriteChannel;
 import io.openems.edge.common.modbusslave.ModbusSlaveNatureTable;
 import org.osgi.service.cm.ConfigurationAdmin;
@@ -158,23 +159,37 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		/*
 		 * get and store Simulated Active Power
 		 */
-		Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
-				new ChannelAddress(this.id(), "ActivePower"));
-		this.channel(ChannelId.SIMULATED_ACTIVE_POWER).setNextValue(simulatedActivePower);
+		
+		SymmetricMeter meter;
+		try {
+			meter = this.componentManager.getComponent("linkray0");
+			var activePowerValue = meter.getActivePowerChannel().getNextValue().get();
+			
+			
+//			Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
+//					new ChannelAddress(this.id(), "ActivePower"));
+			
+			
+			this.channel(ChannelId.SIMULATED_ACTIVE_POWER).setNextValue(activePowerValue);
 
-		/*
-		 * Calculate Active Power
-		 */
-		var activePower = simulatedActivePower;
-		for (ManagedSymmetricEss ess : this.symmetricEsss) {
-			activePower = TypeUtils.subtract(activePower, ess.getActivePower().get());
+			/*
+			 * Calculate Active Power
+			 */
+			var activePower = activePowerValue;
+			for (ManagedSymmetricEss ess : this.symmetricEsss) {
+				activePower = TypeUtils.subtract(activePower, ess.getActivePower().get());
+			}
+
+			this._setActivePower(activePower);
+			var activePowerByThree = TypeUtils.divide(activePower, 3);
+			this._setActivePowerL1(activePowerByThree);
+			this._setActivePowerL2(activePowerByThree);
+			this._setActivePowerL3(activePowerByThree);
+		} catch (OpenemsNamedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
-		this._setActivePower(activePower);
-		var activePowerByThree = TypeUtils.divide(activePower, 3);
-		this._setActivePowerL1(activePowerByThree);
-		this._setActivePowerL2(activePowerByThree);
-		this._setActivePowerL3(activePowerByThree);
 	}
 
 	private void run() throws OpenemsError.OpenemsNamedException {
