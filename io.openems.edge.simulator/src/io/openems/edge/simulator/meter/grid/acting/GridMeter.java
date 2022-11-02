@@ -86,7 +86,10 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 
 	@Reference
 	protected ConfigurationAdmin cm;
-
+	
+	@Reference
+	protected SymmetricMeter linkrayMeter;
+	
 	@Reference(policy = ReferencePolicy.STATIC, policyOption = ReferencePolicyOption.GREEDY, cardinality = ReferenceCardinality.MANDATORY)
 	protected SimulatorDatasource datasource;
 
@@ -106,7 +109,15 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		super.activate(context, config.id(), config.alias(), config.enabled(), config.modbusUnitId(), this.cm, "Modbus",
 				config.modbus_id());
 
-		if (OpenemsComponent.updateReferenceFilter(this.cm, this.servicePid(), "datasource", config.datasource_id())) {
+		if (OpenemsComponent.updateReferenceFilter(this.cm, this.servicePid(), "linkray", config.linkray_id())) {
+			
+			try {
+				this.linkrayMeter = this.componentManager.getComponent(config.linkray_id());
+			} catch (OpenemsNamedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 			return;
 		}
 
@@ -160,35 +171,28 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		 * get and store Simulated Active Power
 		 */
 		
-		SymmetricMeter meter;
-		try {
-			meter = this.componentManager.getComponent("linkray0");
-			var activePowerValue = meter.getActivePowerChannel().getNextValue().get();
-			
-			
+		var activePowerValue = this.linkrayMeter.getActivePowerChannel().getNextValue().get();
+		
+		
 //			Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
 //					new ChannelAddress(this.id(), "ActivePower"));
-			
-			
-			this.channel(ChannelId.SIMULATED_ACTIVE_POWER).setNextValue(activePowerValue);
+		
+		
+		this.channel(ChannelId.SIMULATED_ACTIVE_POWER).setNextValue(activePowerValue);
 
-			/*
-			 * Calculate Active Power
-			 */
-			var activePower = activePowerValue;
-			for (ManagedSymmetricEss ess : this.symmetricEsss) {
-				activePower = TypeUtils.subtract(activePower, ess.getActivePower().get());
-			}
-
-			this._setActivePower(activePower);
-			var activePowerByThree = TypeUtils.divide(activePower, 3);
-			this._setActivePowerL1(activePowerByThree);
-			this._setActivePowerL2(activePowerByThree);
-			this._setActivePowerL3(activePowerByThree);
-		} catch (OpenemsNamedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		/*
+		 * Calculate Active Power
+		 */
+		var activePower = activePowerValue;
+		for (ManagedSymmetricEss ess : this.symmetricEsss) {
+			activePower = TypeUtils.subtract(activePower, ess.getActivePower().get());
 		}
+
+		this._setActivePower(activePower);
+		var activePowerByThree = TypeUtils.divide(activePower, 3);
+		this._setActivePowerL1(activePowerByThree);
+		this._setActivePowerL2(activePowerByThree);
+		this._setActivePowerL3(activePowerByThree);
 
 	}
 
@@ -196,12 +200,8 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		/*
 		 * get and store Simulated Active Power
 		 */
-		SymmetricMeter meter = this.componentManager.getComponent("linkray0");
 
-		// Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
-//				new ChannelAddress(this.id(), "ActivePower"));
-
-		var activePower = meter.getActivePowerChannel();
+		var activePower = this.linkrayMeter.getActivePowerChannel();
 
 		IntegerWriteChannel activePowerCh = this.channel(ChannelId.SIMULATED_ACTIVE_POWER);
 		activePowerCh.setNextWriteValue(activePower.getNextValue().get());

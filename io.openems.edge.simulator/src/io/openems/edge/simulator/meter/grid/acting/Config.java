@@ -17,8 +17,8 @@ import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 	@AttributeDefinition(name = "Is enabled?", description = "Is this Component enabled?")
 	boolean enabled() default true;
 
-	@AttributeDefinition(name = "Datasource-ID", description = "ID of Simulator Datasource.")
-	String datasource_id() default "datasource0";
+	@AttributeDefinition(name = "Linkray Meter ID", description = "ID of Linkray Meter.")
+	String linkray_id() default "linkray0";
 
 	@AttributeDefinition(name = "Modbus-ID", description = "Id of the modbus bridge")
 	String modbus_id();
