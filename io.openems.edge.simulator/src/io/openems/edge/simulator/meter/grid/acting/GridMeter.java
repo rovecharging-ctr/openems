@@ -7,6 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import io.openems.common.exceptions.OpenemsError;
 import io.openems.common.exceptions.OpenemsError.OpenemsNamedException;
 import io.openems.edge.common.channel.IntegerWriteChannel;
+import io.openems.edge.common.channel.DoubleWriteChannel;
 import io.openems.edge.common.modbusslave.ModbusSlaveNatureTable;
 import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.component.ComponentContext;
@@ -67,7 +68,37 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER).accessMode(AccessMode.READ_WRITE) //
-				.unit(Unit.WATT));
+				.unit(Unit.WATT)),
+		VOLTS_A_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		VOLTS_B_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		VOLTS_C_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		VOLTS_A_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		VOLTS_B_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		VOLTS_C_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		AMPS_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.AMPERE)),
+		AMPS_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.AMPERE)),
+		AMPS_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.AMPERE)),
+		WATTS_3PH_TOTAL(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.WATT)),
+		VARS_3PH_TOTAL(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE_REACTIVE)),
+		VAS_3PH_TOTAL(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE)),
+		POWER_FACTOR(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		FREQUENCY_HZ(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.HERTZ)),
+		NEUTRAL(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.AMPERE)),
+		WATTS_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.WATT)),
+		WATTS_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.WATT)),
+		WATTS_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.WATT)),
+		VARS_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE_REACTIVE)),
+		VARS_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE_REACTIVE)),
+		VARS_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE_REACTIVE)),
+		VA_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE)),
+		VA_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE)),
+		VA_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT_AMPERE)),
+		PF_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		PF_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		PF_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		SYM_COMP_MAG_0(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		SYM_COMP_MAG_P(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE)),
+		SYM_COMP_MAG_M(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.NONE));
 
 		private final Doc doc;
 
@@ -172,14 +203,46 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		 */
 		
 		var activePowerValue = this.linkrayMeter.getActivePowerChannel().getNextValue().get();
+		var currentPerPhase = activePowerValue / 480.0 / 3 ;
 		
+		this.channel(ChannelId.VOLTS_A_N).setNextValue(277.0);
+		this.channel(ChannelId.VOLTS_B_N).setNextValue(277.0);
+		this.channel(ChannelId.VOLTS_C_N).setNextValue(277.0);
+		this.channel(ChannelId.VOLTS_A_B).setNextValue(480.0);
+		this.channel(ChannelId.VOLTS_B_C).setNextValue(480.0);
+		this.channel(ChannelId.VOLTS_C_A).setNextValue(480.0);
 		
-//			Integer simulatedActivePower = this.datasource.getValue(OpenemsType.INTEGER,
-//					new ChannelAddress(this.id(), "ActivePower"));
-		
-		
-		this.channel(ChannelId.SIMULATED_ACTIVE_POWER).setNextValue(activePowerValue);
+		this.channel(ChannelId.AMPS_A).setNextValue(currentPerPhase);
+		this.channel(ChannelId.AMPS_B).setNextValue(currentPerPhase);
+		this.channel(ChannelId.AMPS_C).setNextValue(currentPerPhase);
+		this.channel(ChannelId.WATTS_3PH_TOTAL).setNextValue(activePowerValue);
 
+		this.channel(ChannelId.VARS_3PH_TOTAL).setNextValue(0);
+		this.channel(ChannelId.VAS_3PH_TOTAL).setNextValue(activePowerValue);
+		this.channel(ChannelId.POWER_FACTOR).setNextValue(1.0);
+		this.channel(ChannelId.FREQUENCY_HZ).setNextValue(60.0);
+
+		this.channel(ChannelId.NEUTRAL).setNextValue(0.0);
+		this.channel(ChannelId.WATTS_A).setNextValue(activePowerValue / 3.0);
+		this.channel(ChannelId.WATTS_B).setNextValue(activePowerValue / 3.0);
+		this.channel(ChannelId.WATTS_C).setNextValue(activePowerValue / 3.0);
+
+		this.channel(ChannelId.VARS_A).setNextValue(0.0);
+		this.channel(ChannelId.VARS_B).setNextValue(0.0);
+		this.channel(ChannelId.VARS_C).setNextValue(0.0);
+		
+		this.channel(ChannelId.VA_A).setNextValue(activePowerValue / 3.0);
+		this.channel(ChannelId.VA_B).setNextValue(activePowerValue / 3.0);
+		this.channel(ChannelId.VA_C).setNextValue(activePowerValue / 3.0);
+
+		this.channel(ChannelId.PF_A).setNextValue(1.0);
+		this.channel(ChannelId.PF_B).setNextValue(1.0);
+		this.channel(ChannelId.PF_C).setNextValue(1.0);
+
+		this.channel(ChannelId.SYM_COMP_MAG_0).setNextValue(0.0);
+		this.channel(ChannelId.SYM_COMP_MAG_P).setNextValue(0.0);
+		this.channel(ChannelId.SYM_COMP_MAG_M).setNextValue(0.0);
+		
 		/*
 		 * Calculate Active Power
 		 */
@@ -202,10 +265,130 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		 */
 
 		var activePower = this.linkrayMeter.getActivePowerChannel();
-
 		IntegerWriteChannel activePowerCh = this.channel(ChannelId.SIMULATED_ACTIVE_POWER);
 		activePowerCh.setNextWriteValue(activePower.getNextValue().get());
 
+		var volts_a = this.channel(ChannelId.VOLTS_A_N);
+		DoubleWriteChannel volts_a_n_ch= this.channel(ChannelId.VOLTS_A_N);
+		volts_a_n_ch.setNextWriteValue((Double) volts_a.getNextValue().get());
+
+		var volts_b = this.channel(ChannelId.VOLTS_B_N);
+		DoubleWriteChannel volts_b_n_ch= this.channel(ChannelId.VOLTS_B_N);
+		volts_b_n_ch.setNextWriteValue((Double) volts_b.getNextValue().get());
+		
+		var volts_c = this.channel(ChannelId.VOLTS_C_N);
+		DoubleWriteChannel volts_c_n_ch= this.channel(ChannelId.VOLTS_C_N);
+		volts_c_n_ch.setNextWriteValue((Double) volts_c.getNextValue().get());
+		
+		var volts_a_b = this.channel(ChannelId.VOLTS_A_B);
+		DoubleWriteChannel volts_a_b_ch= this.channel(ChannelId.VOLTS_A_B);
+		volts_a_b_ch.setNextWriteValue((Double) volts_a_b.getNextValue().get());
+		
+		var volts_b_c = this.channel(ChannelId.VOLTS_B_C);
+		DoubleWriteChannel volts_b_c_ch= this.channel(ChannelId.VOLTS_B_C);
+		volts_b_c_ch.setNextWriteValue((Double) volts_b_c.getNextValue().get());
+		
+		var volts_c_a = this.channel(ChannelId.VOLTS_C_A);
+		DoubleWriteChannel volts_c_a_ch= this.channel(ChannelId.VOLTS_C_A);
+		volts_c_a_ch.setNextWriteValue((Double) volts_c_a.getNextValue().get());
+		
+		var amps_a = this.channel(ChannelId.AMPS_A);
+		DoubleWriteChannel amps_a_ch = this.channel(ChannelId.AMPS_A);
+		amps_a_ch.setNextWriteValue((Double) amps_a.getNextValue().get());
+
+		var amps_b = this.channel(ChannelId.AMPS_B);
+		DoubleWriteChannel amps_b_ch = this.channel(ChannelId.AMPS_B);
+		amps_b_ch.setNextWriteValue((Double) amps_b.getNextValue().get());
+
+		var amps_c = this.channel(ChannelId.AMPS_C);
+		DoubleWriteChannel amps_c_ch = this.channel(ChannelId.AMPS_C);
+		amps_c_ch.setNextWriteValue((Double) amps_c.getNextValue().get());
+		
+		var watts_tot = this.channel(ChannelId.WATTS_3PH_TOTAL);
+		DoubleWriteChannel watts_tot_ch= this.channel(ChannelId.WATTS_3PH_TOTAL);
+		watts_tot_ch.setNextWriteValue((Double) watts_tot.getNextValue().get());
+
+		var vars_tot = this.channel(ChannelId.VARS_3PH_TOTAL);
+		DoubleWriteChannel vars_tot_ch= this.channel(ChannelId.VARS_3PH_TOTAL);
+		vars_tot_ch.setNextWriteValue((Double) vars_tot.getNextValue().get());
+		
+		var vas_tot = this.channel(ChannelId.VAS_3PH_TOTAL);
+		DoubleWriteChannel vas_tot_ch= this.channel(ChannelId.VAS_3PH_TOTAL);
+		vas_tot_ch.setNextWriteValue((Double) vas_tot.getNextValue().get());
+		
+		var pf = this.channel(ChannelId.POWER_FACTOR);
+		DoubleWriteChannel pf_ch= this.channel(ChannelId.POWER_FACTOR);
+		pf_ch.setNextWriteValue((Double) pf.getNextValue().get());
+		
+		var freq = this.channel(ChannelId.FREQUENCY_HZ);
+		DoubleWriteChannel freq_ch= this.channel(ChannelId.FREQUENCY_HZ);
+		freq_ch.setNextWriteValue((Double) freq.getNextValue().get());
+
+		var neutral = this.channel(ChannelId.NEUTRAL);
+		DoubleWriteChannel neutral_ch= this.channel(ChannelId.NEUTRAL);
+		neutral_ch.setNextWriteValue((Double) neutral.getNextValue().get());
+
+		var watts_a = this.channel(ChannelId.WATTS_A);
+		DoubleWriteChannel watts_a_ch = this.channel(ChannelId.WATTS_A);
+		watts_a_ch.setNextWriteValue((Double) watts_a.getNextValue().get());
+
+		var watts_b = this.channel(ChannelId.WATTS_B);
+		DoubleWriteChannel watts_b_ch = this.channel(ChannelId.WATTS_B);
+		watts_b_ch.setNextWriteValue((Double) watts_b.getNextValue().get());
+
+		var watts_c = this.channel(ChannelId.WATTS_C);
+		DoubleWriteChannel watts_c_ch = this.channel(ChannelId.WATTS_C);
+		watts_c_ch.setNextWriteValue((Double) watts_c.getNextValue().get());
+
+		var vars_a = this.channel(ChannelId.VARS_A);
+		DoubleWriteChannel vars_a_ch = this.channel(ChannelId.VARS_A);
+		vars_a_ch.setNextWriteValue((Double) vars_a.getNextValue().get());
+
+		var vars_b = this.channel(ChannelId.VARS_B);
+		DoubleWriteChannel vars_b_ch = this.channel(ChannelId.VARS_B);
+		vars_b_ch.setNextWriteValue((Double) vars_b.getNextValue().get());
+
+		var vars_c = this.channel(ChannelId.VARS_C);
+		DoubleWriteChannel vars_c_ch = this.channel(ChannelId.VARS_C);
+		vars_c_ch.setNextWriteValue((Double) vars_c.getNextValue().get());
+		
+		
+		var va_a = this.channel(ChannelId.VA_A);
+		DoubleWriteChannel va_a_ch = this.channel(ChannelId.VA_A);
+		va_a_ch.setNextWriteValue((Double) va_a.getNextValue().get());
+
+		var va_b = this.channel(ChannelId.VA_B);
+		DoubleWriteChannel va_b_ch = this.channel(ChannelId.VA_B);
+		va_b_ch.setNextWriteValue((Double) va_b.getNextValue().get());
+
+		var va_c = this.channel(ChannelId.VA_C);
+		DoubleWriteChannel va_c_ch = this.channel(ChannelId.VA_C);
+		va_c_ch.setNextWriteValue((Double) va_c.getNextValue().get());
+		
+		var pf_a = this.channel(ChannelId.PF_A);
+		DoubleWriteChannel pf_a_ch = this.channel(ChannelId.PF_A);
+		pf_a_ch.setNextWriteValue((Double) pf_a.getNextValue().get());
+
+		var pf_b = this.channel(ChannelId.PF_B);
+		DoubleWriteChannel pf_b_ch = this.channel(ChannelId.PF_B);
+		pf_b_ch.setNextWriteValue((Double) pf_b.getNextValue().get());
+
+		var pf_c = this.channel(ChannelId.PF_C);
+		DoubleWriteChannel pf_c_ch = this.channel(ChannelId.PF_C);
+		pf_c_ch.setNextWriteValue((Double) pf_c.getNextValue().get());
+
+		var scm_c = this.channel(ChannelId.SYM_COMP_MAG_0);
+		DoubleWriteChannel scm_c_ch = this.channel(ChannelId.SYM_COMP_MAG_0);
+		scm_c_ch.setNextWriteValue((Double) scm_c.getNextValue().get());
+		
+		var scm_p = this.channel(ChannelId.SYM_COMP_MAG_P);
+		DoubleWriteChannel scm_p_ch = this.channel(ChannelId.SYM_COMP_MAG_P);
+		scm_p_ch.setNextWriteValue((Double) scm_p.getNextValue().get());
+		
+		var scm_m = this.channel(ChannelId.SYM_COMP_MAG_M);
+		DoubleWriteChannel scm_m_ch = this.channel(ChannelId.SYM_COMP_MAG_M);
+		scm_m_ch.setNextWriteValue((Double) scm_m.getNextValue().get());
+		
 	}
 
 	@Override
@@ -224,9 +407,39 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 //				new FC3ReadRegistersTask(1000, Priority.HIGH,
 //						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)))
 
-				new FC16WriteRegistersTask(1002, //
-						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1002)))
+				new FC16WriteRegistersTask(999, //
 
+						m(ChannelId.VOLTS_A_N, new FloatDoublewordElement(999)),
+						m(ChannelId.VOLTS_B_N, new FloatDoublewordElement(1001)),
+						m(ChannelId.VOLTS_C_N, new FloatDoublewordElement(1003)),
+						m(ChannelId.VOLTS_A_B, new FloatDoublewordElement(1005)),
+						m(ChannelId.VOLTS_B_C, new FloatDoublewordElement(1007)),
+						m(ChannelId.VOLTS_C_A, new FloatDoublewordElement(1009)),
+						m(ChannelId.AMPS_A, new FloatDoublewordElement(1011)),
+						m(ChannelId.AMPS_B, new FloatDoublewordElement(1013)),
+						m(ChannelId.AMPS_C, new FloatDoublewordElement(1015)),
+						m(ChannelId.WATTS_3PH_TOTAL, new FloatDoublewordElement(1017)),
+						m(ChannelId.VARS_3PH_TOTAL, new FloatDoublewordElement(1019)),
+						m(ChannelId.VAS_3PH_TOTAL, new FloatDoublewordElement(1021)),
+						m(ChannelId.POWER_FACTOR, new FloatDoublewordElement(1023)),
+						m(ChannelId.FREQUENCY_HZ, new FloatDoublewordElement(1025)),
+						m(ChannelId.NEUTRAL, new FloatDoublewordElement(1027)),
+						m(ChannelId.WATTS_A, new FloatDoublewordElement(1029)),
+						m(ChannelId.WATTS_B, new FloatDoublewordElement(1031)),
+						m(ChannelId.WATTS_C, new FloatDoublewordElement(1033)),
+						m(ChannelId.VARS_A, new FloatDoublewordElement(1035)),
+						m(ChannelId.VARS_B, new FloatDoublewordElement(1037)),
+						m(ChannelId.VARS_C, new FloatDoublewordElement(1039)),
+						m(ChannelId.VA_A, new FloatDoublewordElement(1041)),
+						m(ChannelId.VA_B, new FloatDoublewordElement(1043)),
+						m(ChannelId.VA_C, new FloatDoublewordElement(1045)),
+						m(ChannelId.PF_A, new FloatDoublewordElement(1047)),
+						m(ChannelId.PF_B, new FloatDoublewordElement(1049)),
+						m(ChannelId.PF_C, new FloatDoublewordElement(1051)),
+						m(ChannelId.SYM_COMP_MAG_0, new FloatDoublewordElement(1053)),
+						m(ChannelId.SYM_COMP_MAG_P, new FloatDoublewordElement(1055)),
+						m(ChannelId.SYM_COMP_MAG_M, new FloatDoublewordElement(1057))
+						)
 		);
 
 		return modbusProtocol;
