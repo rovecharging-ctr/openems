@@ -69,10 +69,10 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 	public enum ChannelId implements io.openems.edge.common.channel.ChannelId {
 		SIMULATED_ACTIVE_POWER(Doc.of(OpenemsType.INTEGER).accessMode(AccessMode.READ_WRITE) //
 				.unit(Unit.WATT)),
-		VOLTS_A_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		voltsA_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
 		VOLTS_B_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
 		VOLTS_C_N(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
-		VOLTS_A_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
+		voltsA_B(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
 		VOLTS_B_C(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
 		VOLTS_C_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.VOLT)),
 		AMPS_A(Doc.of(OpenemsType.DOUBLE).accessMode(AccessMode.READ_WRITE).unit(Unit.AMPERE)),
@@ -203,12 +203,12 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		 */
 		
 		var activePowerValue = this.linkrayMeter.getActivePowerChannel().getNextValue().get();
-		var currentPerPhase = activePowerValue / 480.0 / 3 ;
+		var currentPerPhase = activePowerValue / 480.0 / 3;
 		
-		this.channel(ChannelId.VOLTS_A_N).setNextValue(277.0);
+		this.channel(ChannelId.voltsA_N).setNextValue(277.0);
 		this.channel(ChannelId.VOLTS_B_N).setNextValue(277.0);
 		this.channel(ChannelId.VOLTS_C_N).setNextValue(277.0);
-		this.channel(ChannelId.VOLTS_A_B).setNextValue(480.0);
+		this.channel(ChannelId.voltsA_B).setNextValue(480.0);
 		this.channel(ChannelId.VOLTS_B_C).setNextValue(480.0);
 		this.channel(ChannelId.VOLTS_C_A).setNextValue(480.0);
 		
@@ -268,126 +268,126 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		IntegerWriteChannel activePowerCh = this.channel(ChannelId.SIMULATED_ACTIVE_POWER);
 		activePowerCh.setNextWriteValue(activePower.getNextValue().get());
 
-		var volts_a = this.channel(ChannelId.VOLTS_A_N);
-		DoubleWriteChannel volts_a_n_ch= this.channel(ChannelId.VOLTS_A_N);
-		volts_a_n_ch.setNextWriteValue((Double) volts_a.getNextValue().get());
+		var voltsA = this.channel(ChannelId.voltsA_N);
+		DoubleWriteChannel voltsANch = this.channel(ChannelId.voltsA_N);
+		voltsANch.setNextWriteValue((Double) voltsA.getNextValue().get());
 
-		var volts_b = this.channel(ChannelId.VOLTS_B_N);
-		DoubleWriteChannel volts_b_n_ch= this.channel(ChannelId.VOLTS_B_N);
-		volts_b_n_ch.setNextWriteValue((Double) volts_b.getNextValue().get());
+		var voltsB = this.channel(ChannelId.VOLTS_B_N);
+		DoubleWriteChannel voltsBNch = this.channel(ChannelId.VOLTS_B_N);
+		voltsBNch.setNextWriteValue((Double) voltsB.getNextValue().get());
 		
-		var volts_c = this.channel(ChannelId.VOLTS_C_N);
-		DoubleWriteChannel volts_c_n_ch= this.channel(ChannelId.VOLTS_C_N);
-		volts_c_n_ch.setNextWriteValue((Double) volts_c.getNextValue().get());
+		var voltsC = this.channel(ChannelId.VOLTS_C_N);
+		DoubleWriteChannel voltsCNch = this.channel(ChannelId.VOLTS_C_N);
+		voltsCNch.setNextWriteValue((Double) voltsC.getNextValue().get());
 		
-		var volts_a_b = this.channel(ChannelId.VOLTS_A_B);
-		DoubleWriteChannel volts_a_b_ch= this.channel(ChannelId.VOLTS_A_B);
-		volts_a_b_ch.setNextWriteValue((Double) volts_a_b.getNextValue().get());
+		var voltsAB = this.channel(ChannelId.voltsA_B);
+		DoubleWriteChannel voltsABch = this.channel(ChannelId.voltsA_B);
+		voltsABch.setNextWriteValue((Double) voltsAB.getNextValue().get());
 		
-		var volts_b_c = this.channel(ChannelId.VOLTS_B_C);
-		DoubleWriteChannel volts_b_c_ch= this.channel(ChannelId.VOLTS_B_C);
-		volts_b_c_ch.setNextWriteValue((Double) volts_b_c.getNextValue().get());
+		var voltsBC = this.channel(ChannelId.VOLTS_B_C);
+		DoubleWriteChannel voltsBCch = this.channel(ChannelId.VOLTS_B_C);
+		voltsBCch.setNextWriteValue((Double) voltsBC.getNextValue().get());
 		
-		var volts_c_a = this.channel(ChannelId.VOLTS_C_A);
-		DoubleWriteChannel volts_c_a_ch= this.channel(ChannelId.VOLTS_C_A);
-		volts_c_a_ch.setNextWriteValue((Double) volts_c_a.getNextValue().get());
+		var voltsCA = this.channel(ChannelId.VOLTS_C_A);
+		DoubleWriteChannel voltsCAch = this.channel(ChannelId.VOLTS_C_A);
+		voltsCAch.setNextWriteValue((Double) voltsCA.getNextValue().get());
 		
-		var amps_a = this.channel(ChannelId.AMPS_A);
-		DoubleWriteChannel amps_a_ch = this.channel(ChannelId.AMPS_A);
-		amps_a_ch.setNextWriteValue((Double) amps_a.getNextValue().get());
+		var ampsA = this.channel(ChannelId.AMPS_A);
+		DoubleWriteChannel ampsACh = this.channel(ChannelId.AMPS_A);
+		ampsACh.setNextWriteValue((Double) ampsA.getNextValue().get());
 
-		var amps_b = this.channel(ChannelId.AMPS_B);
-		DoubleWriteChannel amps_b_ch = this.channel(ChannelId.AMPS_B);
-		amps_b_ch.setNextWriteValue((Double) amps_b.getNextValue().get());
+		var ampsB = this.channel(ChannelId.AMPS_B);
+		DoubleWriteChannel ampsBCh = this.channel(ChannelId.AMPS_B);
+		ampsBCh.setNextWriteValue((Double) ampsB.getNextValue().get());
 
-		var amps_c = this.channel(ChannelId.AMPS_C);
-		DoubleWriteChannel amps_c_ch = this.channel(ChannelId.AMPS_C);
-		amps_c_ch.setNextWriteValue((Double) amps_c.getNextValue().get());
+		var ampsC = this.channel(ChannelId.AMPS_C);
+		DoubleWriteChannel ampsCCh = this.channel(ChannelId.AMPS_C);
+		ampsCCh.setNextWriteValue((Double) ampsC.getNextValue().get());
 		
-		var watts_tot = this.channel(ChannelId.WATTS_3PH_TOTAL);
-		DoubleWriteChannel watts_tot_ch= this.channel(ChannelId.WATTS_3PH_TOTAL);
-		watts_tot_ch.setNextWriteValue((Double) watts_tot.getNextValue().get());
+		var wattsTot = this.channel(ChannelId.WATTS_3PH_TOTAL);
+		DoubleWriteChannel wattsTotCh = this.channel(ChannelId.WATTS_3PH_TOTAL);
+		wattsTotCh.setNextWriteValue((Double) wattsTot.getNextValue().get());
 
-		var vars_tot = this.channel(ChannelId.VARS_3PH_TOTAL);
-		DoubleWriteChannel vars_tot_ch= this.channel(ChannelId.VARS_3PH_TOTAL);
-		vars_tot_ch.setNextWriteValue((Double) vars_tot.getNextValue().get());
+		var varsTot = this.channel(ChannelId.VARS_3PH_TOTAL);
+		DoubleWriteChannel varsTotCh = this.channel(ChannelId.VARS_3PH_TOTAL);
+		varsTotCh.setNextWriteValue((Double) varsTot.getNextValue().get());
 		
-		var vas_tot = this.channel(ChannelId.VAS_3PH_TOTAL);
-		DoubleWriteChannel vas_tot_ch= this.channel(ChannelId.VAS_3PH_TOTAL);
-		vas_tot_ch.setNextWriteValue((Double) vas_tot.getNextValue().get());
+		var vasTot = this.channel(ChannelId.VAS_3PH_TOTAL);
+		DoubleWriteChannel vasTotCh = this.channel(ChannelId.VAS_3PH_TOTAL);
+		vasTotCh.setNextWriteValue((Double) vasTot.getNextValue().get());
 		
 		var pf = this.channel(ChannelId.POWER_FACTOR);
-		DoubleWriteChannel pf_ch= this.channel(ChannelId.POWER_FACTOR);
-		pf_ch.setNextWriteValue((Double) pf.getNextValue().get());
+		DoubleWriteChannel pfCh = this.channel(ChannelId.POWER_FACTOR);
+		pfCh.setNextWriteValue((Double) pf.getNextValue().get());
 		
 		var freq = this.channel(ChannelId.FREQUENCY_HZ);
-		DoubleWriteChannel freq_ch= this.channel(ChannelId.FREQUENCY_HZ);
-		freq_ch.setNextWriteValue((Double) freq.getNextValue().get());
+		DoubleWriteChannel freqCh = this.channel(ChannelId.FREQUENCY_HZ);
+		freqCh.setNextWriteValue((Double) freq.getNextValue().get());
 
 		var neutral = this.channel(ChannelId.NEUTRAL);
-		DoubleWriteChannel neutral_ch= this.channel(ChannelId.NEUTRAL);
-		neutral_ch.setNextWriteValue((Double) neutral.getNextValue().get());
+		DoubleWriteChannel neutralCh = this.channel(ChannelId.NEUTRAL);
+		neutralCh.setNextWriteValue((Double) neutral.getNextValue().get());
 
-		var watts_a = this.channel(ChannelId.WATTS_A);
-		DoubleWriteChannel watts_a_ch = this.channel(ChannelId.WATTS_A);
-		watts_a_ch.setNextWriteValue((Double) watts_a.getNextValue().get());
+		var wattsA = this.channel(ChannelId.WATTS_A);
+		DoubleWriteChannel wattsACh = this.channel(ChannelId.WATTS_A);
+		wattsACh.setNextWriteValue((Double) wattsA.getNextValue().get());
 
-		var watts_b = this.channel(ChannelId.WATTS_B);
-		DoubleWriteChannel watts_b_ch = this.channel(ChannelId.WATTS_B);
-		watts_b_ch.setNextWriteValue((Double) watts_b.getNextValue().get());
+		var wattsB = this.channel(ChannelId.WATTS_B);
+		DoubleWriteChannel wattsBCh = this.channel(ChannelId.WATTS_B);
+		wattsBCh.setNextWriteValue((Double) wattsB.getNextValue().get());
 
-		var watts_c = this.channel(ChannelId.WATTS_C);
-		DoubleWriteChannel watts_c_ch = this.channel(ChannelId.WATTS_C);
-		watts_c_ch.setNextWriteValue((Double) watts_c.getNextValue().get());
+		var wattsC = this.channel(ChannelId.WATTS_C);
+		DoubleWriteChannel wattsCCh = this.channel(ChannelId.WATTS_C);
+		wattsCCh.setNextWriteValue((Double) wattsC.getNextValue().get());
 
-		var vars_a = this.channel(ChannelId.VARS_A);
-		DoubleWriteChannel vars_a_ch = this.channel(ChannelId.VARS_A);
-		vars_a_ch.setNextWriteValue((Double) vars_a.getNextValue().get());
+		var varsA = this.channel(ChannelId.VARS_A);
+		DoubleWriteChannel varsACh = this.channel(ChannelId.VARS_A);
+		varsACh.setNextWriteValue((Double) varsA.getNextValue().get());
 
-		var vars_b = this.channel(ChannelId.VARS_B);
-		DoubleWriteChannel vars_b_ch = this.channel(ChannelId.VARS_B);
-		vars_b_ch.setNextWriteValue((Double) vars_b.getNextValue().get());
+		var varsB = this.channel(ChannelId.VARS_B);
+		DoubleWriteChannel varsBCh = this.channel(ChannelId.VARS_B);
+		varsBCh.setNextWriteValue((Double) varsB.getNextValue().get());
 
-		var vars_c = this.channel(ChannelId.VARS_C);
-		DoubleWriteChannel vars_c_ch = this.channel(ChannelId.VARS_C);
-		vars_c_ch.setNextWriteValue((Double) vars_c.getNextValue().get());
+		var varsC = this.channel(ChannelId.VARS_C);
+		DoubleWriteChannel varsCCh = this.channel(ChannelId.VARS_C);
+		varsCCh.setNextWriteValue((Double) varsC.getNextValue().get());
 		
 		
-		var va_a = this.channel(ChannelId.VA_A);
-		DoubleWriteChannel va_a_ch = this.channel(ChannelId.VA_A);
-		va_a_ch.setNextWriteValue((Double) va_a.getNextValue().get());
+		var vaA = this.channel(ChannelId.VA_A);
+		DoubleWriteChannel vaACh = this.channel(ChannelId.VA_A);
+		vaACh.setNextWriteValue((Double) vaA.getNextValue().get());
 
-		var va_b = this.channel(ChannelId.VA_B);
-		DoubleWriteChannel va_b_ch = this.channel(ChannelId.VA_B);
-		va_b_ch.setNextWriteValue((Double) va_b.getNextValue().get());
+		var vaB = this.channel(ChannelId.VA_B);
+		DoubleWriteChannel vaBCh = this.channel(ChannelId.VA_B);
+		vaBCh.setNextWriteValue((Double) vaB.getNextValue().get());
 
-		var va_c = this.channel(ChannelId.VA_C);
-		DoubleWriteChannel va_c_ch = this.channel(ChannelId.VA_C);
-		va_c_ch.setNextWriteValue((Double) va_c.getNextValue().get());
+		var vaC = this.channel(ChannelId.VA_C);
+		DoubleWriteChannel vaCCh = this.channel(ChannelId.VA_C);
+		vaCCh.setNextWriteValue((Double) vaC.getNextValue().get());
 		
-		var pf_a = this.channel(ChannelId.PF_A);
-		DoubleWriteChannel pf_a_ch = this.channel(ChannelId.PF_A);
-		pf_a_ch.setNextWriteValue((Double) pf_a.getNextValue().get());
+		var pfA = this.channel(ChannelId.PF_A);
+		DoubleWriteChannel pfACh = this.channel(ChannelId.PF_A);
+		pfACh.setNextWriteValue((Double) pfA.getNextValue().get());
 
-		var pf_b = this.channel(ChannelId.PF_B);
-		DoubleWriteChannel pf_b_ch = this.channel(ChannelId.PF_B);
-		pf_b_ch.setNextWriteValue((Double) pf_b.getNextValue().get());
+		var pfB = this.channel(ChannelId.PF_B);
+		DoubleWriteChannel pfBCh = this.channel(ChannelId.PF_B);
+		pfBCh.setNextWriteValue((Double) pfB.getNextValue().get());
 
-		var pf_c = this.channel(ChannelId.PF_C);
-		DoubleWriteChannel pf_c_ch = this.channel(ChannelId.PF_C);
-		pf_c_ch.setNextWriteValue((Double) pf_c.getNextValue().get());
+		var pfC = this.channel(ChannelId.PF_C);
+		DoubleWriteChannel pfCCh = this.channel(ChannelId.PF_C);
+		pfCCh.setNextWriteValue((Double) pfC.getNextValue().get());
 
-		var scm_c = this.channel(ChannelId.SYM_COMP_MAG_0);
-		DoubleWriteChannel scm_c_ch = this.channel(ChannelId.SYM_COMP_MAG_0);
-		scm_c_ch.setNextWriteValue((Double) scm_c.getNextValue().get());
+		var scmC = this.channel(ChannelId.SYM_COMP_MAG_0);
+		DoubleWriteChannel scmCCh = this.channel(ChannelId.SYM_COMP_MAG_0);
+		scmCCh.setNextWriteValue((Double) scmC.getNextValue().get());
 		
-		var scm_p = this.channel(ChannelId.SYM_COMP_MAG_P);
-		DoubleWriteChannel scm_p_ch = this.channel(ChannelId.SYM_COMP_MAG_P);
-		scm_p_ch.setNextWriteValue((Double) scm_p.getNextValue().get());
+		var scmP = this.channel(ChannelId.SYM_COMP_MAG_P);
+		DoubleWriteChannel scmPCh = this.channel(ChannelId.SYM_COMP_MAG_P);
+		scmPCh.setNextWriteValue((Double) scmP.getNextValue().get());
 		
-		var scm_m = this.channel(ChannelId.SYM_COMP_MAG_M);
-		DoubleWriteChannel scm_m_ch = this.channel(ChannelId.SYM_COMP_MAG_M);
-		scm_m_ch.setNextWriteValue((Double) scm_m.getNextValue().get());
+		var scmM = this.channel(ChannelId.SYM_COMP_MAG_M);
+		DoubleWriteChannel scmMCh = this.channel(ChannelId.SYM_COMP_MAG_M);
+		scmMCh.setNextWriteValue((Double) scmM.getNextValue().get());
 		
 	}
 
@@ -404,15 +404,13 @@ public class GridMeter extends AbstractOpenemsModbusComponent implements Symmetr
 		 * reachable within one ReadMultipleRegistersRequest.
 		 */
 		var modbusProtocol = new ModbusProtocol(this, //
-//				new FC3ReadRegistersTask(1000, Priority.HIGH,
-//						m(ChannelId.SIMULATED_ACTIVE_POWER, new FloatDoublewordElement(1000)))
 
 				new FC16WriteRegistersTask(999, //
 
-						m(ChannelId.VOLTS_A_N, new FloatDoublewordElement(999)),
+						m(ChannelId.voltsA_N, new FloatDoublewordElement(999)),
 						m(ChannelId.VOLTS_B_N, new FloatDoublewordElement(1001)),
 						m(ChannelId.VOLTS_C_N, new FloatDoublewordElement(1003)),
-						m(ChannelId.VOLTS_A_B, new FloatDoublewordElement(1005)),
+						m(ChannelId.voltsA_B, new FloatDoublewordElement(1005)),
 						m(ChannelId.VOLTS_B_C, new FloatDoublewordElement(1007)),
 						m(ChannelId.VOLTS_C_A, new FloatDoublewordElement(1009)),
 						m(ChannelId.AMPS_A, new FloatDoublewordElement(1011)),
